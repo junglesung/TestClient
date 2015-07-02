@@ -33,7 +33,8 @@ func (b Book) String() string {
 
 func queryAll() {
 	// Send request
-	resp, err := http.Get(BookURL + "queryAll")
+	// resp, err := http.Get(BookURL + "queryAll")
+	resp, err := http.Get(BookURL + "books")
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -73,7 +74,8 @@ func queryAll() {
 // Return 1: failed
 func storeTen() int {
 	// Send request
-	resp, err := http.Get(BookURL + "storeTen")
+	// resp, err := http.Get(BookURL + "storeTen")
+	resp, err := http.Post(BookURL+"books", "", nil)
 	if err != nil {
 		fmt.Println(err)
 		return 1
@@ -112,11 +114,11 @@ func main() {
 	} else {
 		fmt.Println("Store 10 books")
 	}
-	queryAll()
-	if deleteAll() != 0 {
-		fmt.Println("Delete failed")
-		return
-	} else {
-		fmt.Println("Delete all")
-	}
+	// queryAll()
+	// if deleteAll() != 0 {
+	// 	fmt.Println("Delete failed")
+	// 	return
+	// } else {
+	// 	fmt.Println("Delete all")
+	// }
 }

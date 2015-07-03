@@ -1,11 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	// "log"
-	// "math/rand"
+	"math/rand"
 	"net/http"
 	"time"
 )
@@ -19,6 +19,10 @@ type Book struct {
 }
 
 const BookURL = "http://127.0.0.1:8080/api/0.1/"
+const BookMaxPages = 1000
+
+var BookName = []string{"AAA", "BBB", "CCC", "DDD", "EEE", "FFF", "GGG", "HHH", "III", "JJJ"}
+var BookAuthor = []string{"AuthorA", "AuthorB", "AuthorC", "AuthorD", "AuthorE", "AuthorF", "AuthorG", "AuthorH", "AuthorI", "AuthorJ"}
 
 // Pring a Book
 func (b Book) String() string {
@@ -91,11 +95,49 @@ func storeTen() int {
 
 // Return 0: success
 // Return 1: failed
-func deleteAll() int {
+func storeBook() int {
+	// Make body
+	book := Book{
+		Name:       BookName[rand.Intn(len(BookName))],
+		Author:     BookAuthor[rand.Intn(len(BookAuthor))],
+		Pages:      rand.Intn(BookMaxPages),
+		Year:       rand.Intn(time.Now().Year()),
+		CreateTime: time.Now(),
+	}
+	b, err := json.Marshal(book)
+	if err != nil {
+		fmt.Println(err, "in encoding a book as JSON")
+		return 1
+	}
+
 	// Send request
-	resp, err := http.Get(BookURL + "deleteAll")
+	resp, err := http.Post(BookURL+"books", "application/json", bytes.NewReader(b))
 	if err != nil {
 		fmt.Println(err)
+		return 1
+	}
+	defer resp.Body.Close()
+	fmt.Println(resp.Status, resp.StatusCode)
+	if resp.StatusCode == http.StatusCreated {
+		return 0
+	} else {
+		return 1
+	}
+}
+
+// Return 0: success
+// Return 1: failed
+func deleteAll() int {
+	// Send request
+	// resp, err := http.Get(BookURL + "deleteAll")
+	pReq, err := http.NewRequest("DELETE", BookURL+"books", nil)
+	if err != nil {
+		fmt.Println(err, "in making request")
+		return 1
+	}
+	resp, err := http.DefaultClient.Do(pReq)
+	if err != nil {
+		fmt.Println(err, "in sending request")
 		return 1
 	}
 	defer resp.Body.Close()
@@ -108,17 +150,21 @@ func deleteAll() int {
 }
 
 func main() {
-	if storeTen() != 0 {
+	// Random seed
+	rand.Seed(time.Now().Unix())
+
+	// Test suite
+	if storeBook() != 0 {
 		fmt.Println("Store failed")
 		return
 	} else {
-		fmt.Println("Store 10 books")
+		fmt.Println("Store a book")
 	}
-	// queryAll()
-	// if deleteAll() != 0 {
-	// 	fmt.Println("Delete failed")
-	// 	return
-	// } else {
-	// 	fmt.Println("Delete all")
-	// }
+	queryAll()
+	if deleteAll() != 0 {
+		fmt.Println("Delete failed")
+		return
+	} else {
+		fmt.Println("Delete all")
+	}
 }

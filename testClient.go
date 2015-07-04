@@ -37,7 +37,6 @@ func (b Book) String() string {
 
 func queryAll() {
 	// Send request
-	// resp, err := http.Get(BookURL + "queryAll")
 	resp, err := http.Get(BookURL + "books")
 	if err != nil {
 		fmt.Println(err)
@@ -56,7 +55,7 @@ func queryAll() {
 	}
 
 	// Decode body
-	var books []Book
+	var books map[string]Book = make(map[string]Book)
 	if resp.StatusCode == http.StatusOK {
 		// Decode as JSON
 		if err := json.Unmarshal(body, &books); err != nil {
@@ -64,7 +63,8 @@ func queryAll() {
 			return
 		}
 		for i, v := range books {
-			fmt.Println(i, "-------------------------------")
+			fmt.Println("-------------------------------")
+			fmt.Println("Key:", i)
 			fmt.Println(v)
 		}
 		fmt.Println("Total", len(books), "books")
@@ -78,7 +78,6 @@ func queryAll() {
 // Return 1: failed
 func storeTen() int {
 	// Send request
-	// resp, err := http.Get(BookURL + "storeTen")
 	resp, err := http.Post(BookURL+"books", "", nil)
 	if err != nil {
 		fmt.Println(err)
@@ -129,7 +128,6 @@ func storeBook() int {
 // Return 1: failed
 func deleteAll() int {
 	// Send request
-	// resp, err := http.Get(BookURL + "deleteAll")
 	pReq, err := http.NewRequest("DELETE", BookURL+"books", nil)
 	if err != nil {
 		fmt.Println(err, "in making request")

@@ -126,6 +126,29 @@ func storeBook() int {
 
 // Return 0: success
 // Return 1: failed
+func deleteBook(key string) int {
+	// Send request
+	pReq, err := http.NewRequest("DELETE", BookURL+"books/"+key, nil)
+	if err != nil {
+		fmt.Println(err, "in making request")
+		return 1
+	}
+	resp, err := http.DefaultClient.Do(pReq)
+	if err != nil {
+		fmt.Println(err, "in sending request")
+		return 1
+	}
+	defer resp.Body.Close()
+	fmt.Println(resp.Status, resp.StatusCode)
+	if resp.StatusCode == http.StatusOK {
+		return 0
+	} else {
+		return 1
+	}
+}
+
+// Return 0: success
+// Return 1: failed
 func deleteAll() int {
 	// Send request
 	pReq, err := http.NewRequest("DELETE", BookURL+"books", nil)

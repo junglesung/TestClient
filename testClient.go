@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -92,9 +93,15 @@ func storeTen() int {
 	}
 }
 
-// Return 0: success
-// Return 1: failed
-func storeBook() int {
+// Return
+// int = 0: success
+//       1: failed
+// string is the new book's unique key
+func storeBook() (r int, key string) {
+	// Return value
+	r = 0
+	key = ""
+
 	// Make body
 	book := Book{
 		Name:       BookName[rand.Intn(len(BookName))],
@@ -106,22 +113,48 @@ func storeBook() int {
 	b, err := json.Marshal(book)
 	if err != nil {
 		fmt.Println(err, "in encoding a book as JSON")
-		return 1
+		r = 1
+		return
 	}
 
 	// Send request
 	resp, err := http.Post(BookURL+"books", "application/json", bytes.NewReader(b))
 	if err != nil {
 		fmt.Println(err)
-		return 1
+		r = 1
+		return
 	}
 	defer resp.Body.Close()
 	fmt.Println(resp.Status, resp.StatusCode)
-	if resp.StatusCode == http.StatusCreated {
-		return 0
-	} else {
-		return 1
+	if resp.StatusCode != http.StatusCreated {
+		r = 1
+		return
 	}
+	url, err := resp.Location()
+	if err != nil {
+		fmt.Println(err, "in getting location from response")
+		return
+	}
+	fmt.Println("Location is", url)
+
+	// Get key from URL
+	tokens := strings.Split(url.Path, "/")
+	var keyIndexInTokens int = 0
+	for i, v := range tokens {
+		if v == "books" {
+			keyIndexInTokens = i + 1
+		}
+	}
+	if keyIndexInTokens >= len(tokens) {
+		fmt.Println("Key is not given")
+		return
+	}
+	key = tokens[keyIndexInTokens]
+	if key == "" {
+		fmt.Println("Key is empty")
+		return
+	}
+	return
 }
 
 // Return 0: success
@@ -175,13 +208,20 @@ func main() {
 	rand.Seed(time.Now().Unix())
 
 	// Test suite
-	if storeBook() != 0 {
+	r, key := storeBook()
+	if r != 0 {
 		fmt.Println("Store failed")
 		return
 	} else {
-		fmt.Println("Store a book")
+		fmt.Println("Store a book in key", key)
 	}
 	queryAll()
+	if deleteBook(key) != 0 {
+		fmt.Println("Failed to delete book key", key)
+		return
+	} else {
+		fmt.Println("Delete book key", key)
+	}
 	if deleteAll() != 0 {
 		fmt.Println("Delete failed")
 		return

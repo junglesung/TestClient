@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 )
@@ -75,11 +76,61 @@ func queryAll() {
 	}
 }
 
+func queryBook() {
+	// Make URL
+	var u *url.URL
+	var err error
+	if u, err = url.ParseRequestURI(BookURL + "books"); err != nil {
+		fmt.Println(err, "in making URL")
+		return
+	}
+	var q url.Values = u.Query()
+	q.Add("Name", BookName[rand.Intn(len(BookName))])
+	u.RawQuery = q.Encode()
+
+	// Send request
+	resp, err := http.Get(u.String())
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	// Print status
+	fmt.Println(resp.Status, resp.StatusCode)
+
+	// Get body
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	// Decode body
+	var books map[string]Book = make(map[string]Book)
+	if resp.StatusCode == http.StatusOK {
+		// Decode as JSON
+		if err := json.Unmarshal(body, &books); err != nil {
+			fmt.Println(err, "in decoding JSON")
+			return
+		}
+		for i, v := range books {
+			fmt.Println("-------------------------------")
+			fmt.Println("Key:", i)
+			fmt.Println(v)
+		}
+		fmt.Println("Total", len(books), "books")
+	} else {
+		// Decode as text
+		fmt.Printf("%s", body)
+	}
+}
+
 // Return 0: success
 // Return 1: failed
 func storeTen() int {
 	// Send request
-	resp, err := http.Post(BookURL+"books", "", nil)
+	resp, err := http.Post(BookURL+"storeTen", "", nil)
 	if err != nil {
 		fmt.Println(err)
 		return 1
@@ -208,20 +259,33 @@ func main() {
 	rand.Seed(time.Now().Unix())
 
 	// Test suite
+	fmt.Println("========================================")
+	if storeTen() != 0 {
+		fmt.Println("Store books failed")
+		return
+	} else {
+		fmt.Println("Store 10 books")
+	}
+	fmt.Println("========================================")
 	r, key := storeBook()
 	if r != 0 {
-		fmt.Println("Store failed")
+		fmt.Println("Store a book failed")
 		return
 	} else {
 		fmt.Println("Store a book in key", key)
 	}
+	fmt.Println("========================================")
 	queryAll()
+	fmt.Println("========================================")
+	queryBook()
+	fmt.Println("========================================")
 	if deleteBook(key) != 0 {
 		fmt.Println("Failed to delete book key", key)
 		return
 	} else {
 		fmt.Println("Delete book key", key)
 	}
+	fmt.Println("========================================")
 	if deleteAll() != 0 {
 		fmt.Println("Delete failed")
 		return

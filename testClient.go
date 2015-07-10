@@ -20,7 +20,10 @@ type Book struct {
 	CreateTime time.Time `json:"createtime"`
 }
 
+// Target server
+// const BookURL = "https://testdatastore-1002.appspot.com/api/0.1/"
 const BookURL = "http://127.0.0.1:8080/api/0.1/"
+
 const BookMaxPages = 1000
 
 var BookName = []string{"AAA", "BBB", "CCC", "DDD", "EEE", "FFF", "GGG", "HHH", "III", "JJJ"}

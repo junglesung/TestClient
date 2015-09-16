@@ -21,8 +21,8 @@ type Book struct {
 }
 
 // Target server
-// const BookURL = "https://testdatastore-1002.appspot.com/api/0.1/"
-const BookURL = "http://127.0.0.1:8080/api/0.1/"
+const BookURL = "https://testdatastore-1002.appspot.com/api/0.1/"
+//const BookURL = "http://127.0.0.1:8080/api/0.1/"
 
 const BookMaxPages = 1000
 
@@ -58,6 +58,9 @@ func queryAll() {
 		fmt.Println(err)
 		return
 	}
+	
+	// Vernon debug
+	fmt.Printf("queryAll() %s\n", body)
 
 	// Decode body
 	var books map[string]Book = make(map[string]Book)
@@ -108,6 +111,9 @@ func queryBook() {
 		fmt.Println(err)
 		return
 	}
+	
+	// Vernon debug
+	fmt.Printf("queryBook() %s\n", body)
 
 	// Decode body
 	var books map[string]Book = make(map[string]Book)
@@ -170,6 +176,9 @@ func storeBook() (r int, key string) {
 		r = 1
 		return
 	}
+	
+	// Vernon debug
+	fmt.Printf("storeBook() %s\n", b)
 
 	// Send request
 	resp, err := http.Post(BookURL+"books", "application/json", bytes.NewReader(b))
